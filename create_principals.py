@@ -160,7 +160,7 @@ with open(args.principals) as csvfile:
             encoded_new_password = ('"%s"' % new_password).encode('utf-16-le')
             password_attributes = {
                 'unicodePwd': [(MODIFY_REPLACE, encoded_new_password)],
-                'userAccountControl': [(MODIFY_REPLACE, 512)]
+                'userAccountControl': [(MODIFY_REPLACE, 512 + 65536)]
             }
 
             logging.info('Setting password for {0}'.format(service_principal))
@@ -207,7 +207,7 @@ for hostname, entries in keytabs.items():
         logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
-        addent = 'addent -password -p {0} -k 1 -e {1}\n'.format(user_principal_name, encryption_type)
+        addent = 'addent -password -p {0} -k 0 -e {1}\n'.format(user_principal_name, encryption_type)
         logging.info('ktutil {0}'.format(addent))
         ktutil.stdin.write(addent)
         time.sleep(1)
