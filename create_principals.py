@@ -141,7 +141,6 @@ with open(args.principals) as csvfile:
                 'cn': account_name,
                 'sAMAccountName': account_name,
                 'msDS-SupportedEncryptionTypes': encryption_flag, #enable support for AES128 0x8, and AES256 0x16
-                'msDS-KeyVersionNumber': 1,
                 'description': 'Kerberos service principal for {0} on {1}'.format(service_name, hostname),
                 'objectClass': ['top', 'person', 'organizationalPerson', 'user'],
                 'servicePrincipalName': service_principal,
