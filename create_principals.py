@@ -117,7 +117,8 @@ with open(args.principals) as csvfile:
         principal = row['principal']
         hostname = row['hostname']
         service_name = row['service_name']
-
+        domain = row['domain']
+        user_principal_name = '{0}@{1}'.format(principal, domain)
         logging.info('Searching for principal {0}'.format(principal))
         ldap_query = '(servicePrincipalName={0})'.format(principal)
         account_prefix = None
@@ -143,6 +144,7 @@ with open(args.principals) as csvfile:
                 'description': 'Kerberos service principal for {0} on {1}'.format(service_name, hostname),
                 'objectClass': ['top', 'person', 'organizationalPerson', 'user'],
                 'servicePrincipalName': principal,
+                'userPrincipalName': user_principal_name,
                 'userAccountControl': 514
             }
 
