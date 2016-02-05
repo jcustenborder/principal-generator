@@ -94,7 +94,7 @@ if args.enctype == 'aes128':
     encryption_type = 'aes128-cts-hmac-sha1-96'
     encryption_flag = 0x8
 elif args.enctype == 'aes256':
-    encryption_type = 'aes128-cts-hmac-sha1-96'
+    encryption_type = 'aes256-cts-hmac-sha1-96'
     encryption_flag = 0x16
 else:
     raise Exception('enctype must be aes128 or aes256')
