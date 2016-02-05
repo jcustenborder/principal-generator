@@ -120,15 +120,21 @@ with open(args.principals) as csvfile:
 
         logging.info('Searching for principal {0}'.format(principal))
         ldap_query = '(servicePrincipalName={0})'.format(principal)
-
+        account_prefix = None
         if service_name == 'zookeeper':
             zookeeper_hosts.append('{0}:{1}'.format(hostname, args.zookeeper_port))
+            account_prefix = 'zoo'
+        elif service_name == 'kafka':
+            account_prefix = 'kafka'
+        else:
+            raise Exception('service_name of kafka and zookeeper are supported.')
+
 
         if conn.search(args.root_dn, ldap_query):
             logging.info('{0} Exists...'.format(principal))
         else:
             logging.info("Principal '{0}' does not exist. Creating...".format(principal))
-            account_name = generate_account_name('kafka')
+            account_name = generate_account_name(account_prefix)
             new_dn = 'CN={0},{1}'.format(account_name, args.root_dn)
             attributes = {
                 'cn': account_name,
