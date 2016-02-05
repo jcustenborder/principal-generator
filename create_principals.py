@@ -170,7 +170,7 @@ with open(args.principals) as csvfile:
             )
 
 logging.info('Starting ktutil')
-ktutil = Popen(['ktutil'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+ktutil = Popen(['ktutil'], stdin=PIPE)
 
 for hostname, entries in keytabs.items():
     for (service_name, principal, password) in entries:
