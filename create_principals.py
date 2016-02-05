@@ -204,7 +204,7 @@ for hostname, entries in keytabs.items():
         time.sleep(1)
         wkt = 'wkt {0}\n'.format(principal_path)
         logging.info('ktutil {0}'.format(wkt))
-        ktutil.stdin.write('%s\n' % password)
+        ktutil.stdin.write('%s\n' % wkt)
         time.sleep(1)
 
 logging.info('ktutil quit')
