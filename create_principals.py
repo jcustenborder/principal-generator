@@ -95,7 +95,7 @@ if args.enctype == 'aes128':
     encryption_flag = 0x8
 elif args.enctype == 'aes256':
     encryption_type = 'aes256-cts-hmac-sha1-96'
-    encryption_flag = 0x16
+    encryption_flag = 0x10
 else:
     raise Exception('enctype must be aes128 or aes256')
 
@@ -199,6 +199,9 @@ for hostname, entries in keytabs.items():
             write_server_properties(kafka_properties_path, zookeeper_hosts)
 
         principal_path = os.path.join(keytabs_path, service_name) + '.keytab'
+        if os.path.exists(principal_path):
+            logging.debug('Removing existing keytab file. {0}'.format(principal_path))
+            os.remove(principal_path)
         logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
