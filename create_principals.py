@@ -193,10 +193,10 @@ for hostname, entries in keytabs.items():
 
         if service_name == 'zookeeper':
             zookeeper_jaas_path = os.path.join(kafka_path, 'zookeeper.jaas')
-            write_zookeeper_server_jaas(service_principal, zookeeper_jaas_path)
+            write_zookeeper_server_jaas(user_principal_name, zookeeper_jaas_path)
         elif service_name == 'kafka':
             kafka_jaas_path = os.path.join(kafka_path, 'kafka_server.jaas')
-            write_kafka_jaas(service_principal, kafka_jaas_path)
+            write_kafka_jaas(user_principal_name, kafka_jaas_path)
             kafka_properties_path = os.path.join(kafka_path, 'server.properties')
             write_server_properties(kafka_properties_path, zookeeper_hosts)
 
@@ -207,7 +207,7 @@ for hostname, entries in keytabs.items():
         logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
-        addent = 'addent -password -p {0} -k 1 -e {1}\n'.format(service_principal, encryption_type)
+        addent = 'addent -password -p {0} -k 1 -e {1}\n'.format(user_principal_name, encryption_type)
         logging.info('ktutil {0}'.format(addent))
         ktutil.stdin.write(addent)
         time.sleep(1)
