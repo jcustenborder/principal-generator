@@ -169,6 +169,7 @@ with open(args.principals) as csvfile:
                     (service_name, principal, new_password)
             )
 
+logging.info('Starting ktutil')
 ktutil = Popen(['ktutil'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
 for hostname, entries in keytabs.items():
@@ -193,15 +194,19 @@ for hostname, entries in keytabs.items():
 
         principal_path = os.path.join(keytabs_path, service_name) + '.keytab'
 
+        logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
         addent = 'addent -password -p {0} -k 0 -e {1}\n'.format(principal, encryption_type)
+        logging.info('ktutil {0}'.format(addent))
         ktutil.stdin.write(addent)
         time.sleep(1)
         ktutil.stdin.write('%s\n' % password)
         time.sleep(1)
         wkt = 'wkt {0}\n'.format(principal_path)
+        logging.info('ktutil {0}'.format(wkt))
         ktutil.stdin.write('%s\n' % password)
         time.sleep(1)
 
+logging.info('ktutil quit')
 ktutil.stdin.write('quit\n')
