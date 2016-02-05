@@ -178,6 +178,11 @@ for hostname, entries in keytabs.items():
         keytabs_path = os.path.join(host_path, 'etc', 'security', 'keytabs')
         kafka_path = os.path.join(host_path, 'etc', 'kafka')
 
+        if not os.path.isdir(keytabs_path):
+            os.makedirs(keytabs_path)
+        if not os.path.isdir(kafka_path):
+            os.makedirs(kafka_path)
+
         if service_name == 'zookeeper':
             zookeeper_jaas_path = os.path.join(kafka_path, 'zookeeper.jaas')
             write_zookeeper_server_jaas(principal, zookeeper_jaas_path)
@@ -187,13 +192,7 @@ for hostname, entries in keytabs.items():
             kafka_properties_path = os.path.join(kafka_path, 'server.properties')
             write_server_properties(kafka_properties_path, zookeeper_hosts)
 
-        if not os.path.isdir(keytabs_path):
-            os.makedirs(keytabs_path)
-        if not os.path.isdir(kafka_path):
-            os.makedirs(kafka_path)
-
         principal_path = os.path.join(keytabs_path, service_name) + '.keytab'
-
         logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
