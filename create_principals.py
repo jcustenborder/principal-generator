@@ -61,6 +61,7 @@ def write_kafka_jaas(principal, jaas_path):
     com.sun.security.auth.module.Krb5LoginModule required
     useKeyTab=true
     storeKey=true
+    useTicketCache=false
     keyTab="/etc/security/keytabs/kafka.keytab"
     principal="{0}";
 }};
@@ -70,6 +71,7 @@ Client {{
     com.sun.security.auth.module.Krb5LoginModule required
     useKeyTab=true
     storeKey=true
+    useTicketCache=false
     keyTab="/etc/security/keytabs/kafka.keytab"
     principal="{0}";
 }};""".format(principal)
