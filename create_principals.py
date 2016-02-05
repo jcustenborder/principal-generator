@@ -114,13 +114,13 @@ zookeeper_hosts=[]
 with open(args.principals) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        principal = row['principal']
+        service_principal = row['principal']
         hostname = row['hostname']
         service_name = row['service_name']
         domain = row['domain']
-        user_principal_name = '{0}@{1}'.format(principal, domain)
-        logging.info('Searching for principal {0}'.format(principal))
-        ldap_query = '(servicePrincipalName={0})'.format(principal)
+        user_principal_name = '{0}@{1}'.format(service_principal, domain)
+        logging.info('Searching for principal {0}'.format(service_principal))
+        ldap_query = '(servicePrincipalName={0})'.format(service_principal)
         account_prefix = None
         if service_name == 'zookeeper':
             zookeeper_hosts.append('{0}:{1}'.format(hostname, args.zookeeper_port))
@@ -132,9 +132,9 @@ with open(args.principals) as csvfile:
 
 
         if conn.search(args.root_dn, ldap_query):
-            logging.info('{0} Exists...'.format(principal))
+            logging.info('{0} Exists...'.format(service_principal))
         else:
-            logging.info("Principal '{0}' does not exist. Creating...".format(principal))
+            logging.info("Principal '{0}' does not exist. Creating...".format(service_principal))
             account_name = generate_account_name(account_prefix)
             new_dn = 'CN={0},{1}'.format(account_name, args.root_dn)
             attributes = {
@@ -143,17 +143,17 @@ with open(args.principals) as csvfile:
                 'msDS-SupportedEncryptionTypes': encryption_flag, #enable support for AES128 0x8, and AES256 0x16
                 'description': 'Kerberos service principal for {0} on {1}'.format(service_name, hostname),
                 'objectClass': ['top', 'person', 'organizationalPerson', 'user'],
-                'servicePrincipalName': principal,
+                'servicePrincipalName': service_principal,
                 'userPrincipalName': user_principal_name,
                 'userAccountControl': 514
             }
 
-            logging.info('Creating principal {0} - {1}'.format(account_name, principal))
+            logging.info('Creating principal {0} - {1}'.format(account_name, service_principal))
 
             if conn.add(new_dn, 'user', attributes):
-                logging.info('Successfully created {0} - {1}'.format(account_name, principal))
+                logging.info('Successfully created {0} - {1}'.format(account_name, service_principal))
             else:
-                logging.error('Error encountered while adding account {0} - {1}'.format(account_name, principal))
+                logging.error('Error encountered while adding account {0} - {1}'.format(account_name, service_principal))
 
             # From https://github.com/cannatag/ldap3/blob/master/ldap3/extend/microsoft/modifyPassword.py
             new_password = ''.join(random.sample(string.ascii_letters + string.punctuation + string.digits, 32))
@@ -163,25 +163,25 @@ with open(args.principals) as csvfile:
                 'userAccountControl': [(MODIFY_REPLACE, 512)]
             }
 
-            logging.info('Setting password for {0}'.format(principal))
+            logging.info('Setting password for {0}'.format(service_principal))
 
             if conn.modify(new_dn, password_attributes, None):
-                logging.info('Successfully set password for {0}'.format(principal))
+                logging.info('Successfully set password for {0}'.format(service_principal))
             else:
-                logging.error('Error setting password for {0}'.format(principal))
+                logging.error('Error setting password for {0}'.format(service_principal))
 
             if not hostname in keytabs:
                 keytabs[hostname] = []
 
             keytabs[hostname].append(
-                    (service_name, principal, new_password)
+                    (service_name, service_principal, user_principal_name, new_password)
             )
 
 logging.info('Starting ktutil')
 ktutil = Popen(['ktutil'], stdin=PIPE)
 
 for hostname, entries in keytabs.items():
-    for (service_name, principal, password) in entries:
+    for (service_name, service_principal, user_principal_name, password) in entries:
         host_path = os.path.join(args.output, hostname)
         keytabs_path = os.path.join(host_path, 'etc', 'security', 'keytabs')
         kafka_path = os.path.join(host_path, 'etc', 'kafka')
@@ -193,10 +193,10 @@ for hostname, entries in keytabs.items():
 
         if service_name == 'zookeeper':
             zookeeper_jaas_path = os.path.join(kafka_path, 'zookeeper.jaas')
-            write_zookeeper_server_jaas(principal, zookeeper_jaas_path)
+            write_zookeeper_server_jaas(service_principal, zookeeper_jaas_path)
         elif service_name == 'kafka':
             kafka_jaas_path = os.path.join(kafka_path, 'kafka_server.jaas')
-            write_kafka_jaas(principal, kafka_jaas_path)
+            write_kafka_jaas(service_principal, kafka_jaas_path)
             kafka_properties_path = os.path.join(kafka_path, 'server.properties')
             write_server_properties(kafka_properties_path, zookeeper_hosts)
 
@@ -207,7 +207,7 @@ for hostname, entries in keytabs.items():
         logging.info('ktutil clear')
         ktutil.stdin.write('clear\n')
         time.sleep(1)
-        addent = 'addent -password -p {0} -k 1 -e {1}\n'.format(principal, encryption_type)
+        addent = 'addent -password -p {0} -k 1 -e {1}\n'.format(service_principal, encryption_type)
         logging.info('ktutil {0}'.format(addent))
         ktutil.stdin.write(addent)
         time.sleep(1)
